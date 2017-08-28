@@ -9,13 +9,12 @@ antiX_lib=/usr/local/lib/antiX
 
 #source $antiX_lib/antiX-get-param.sh
 source $antiX_lib/antiX-common.sh     "$@"
-last_ps_file=$LIVE_DIR/config/last-persist-save
 
-TITLE="$(gt "antiX Save Persistent Root")"
+TITLE="$(gt "antiX Update Live Kernel")"
 
 BLURB="$(pf "\n    %s\n    %s\n"                                                                  \
     "`pfgt "Manually save filesystem changes in %s file for persistent root." "[f]rootfs[/]"`"    \
-    "`pfgt "You MUST run a program like this to save your filesystem changes." "[b]" "[/]"`")"
+    "`pfgt "You%s MUST%s run a program like this to save your filesystem changes." "[b]" "[/]"`")"
 
 SAFETY_MARGIN=2
 
@@ -82,11 +81,7 @@ main() {
         "$(gt "Checking for existing files and")"       \
         "$(gt "Checking if there is enough room ...")"  \
 
-    local upper
-    local root_fs=$(df -T / | tail -n1 | awk '{print $2}')
-    [ "$root_fs" = "overlay" ] && upper="/upper"
-
-    excludes="$(rootfs_excludes $AUFS_RAM_MP$upper)"
+    excludes="$(rootfs_excludes $AUFS_RAM_MP)"
     exclude_size="$(du_size $excludes)"
 
     pdev_total=$(all_space  $PERSIST_MP)
@@ -149,7 +144,7 @@ main() {
 
     #lifo_string TO_DELETE $exclude_file
 
-    rootfs_excludes "/${upper#/}" | sort -u > $exclude_file
+    rootfs_excludes "/" | sort -u > $exclude_file
 
     rsync_opts="-a --delete-excluded --exclude-from=$exclude_file $AUFS_RAM_MP/ $ROOTFS_MP/"
     vmsg "rsync $rsync_opts"
